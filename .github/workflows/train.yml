@@ -28,7 +28,7 @@ jobs:
           zip -r ../trained_model.zip .
 
       - name: Upload trained model
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: trained_model
           path: trained_model.zip
