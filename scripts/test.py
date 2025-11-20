@@ -32,6 +32,7 @@ X_scaled = scaler.transform(X)
 # desfazendo compressão
 data_bytes = pickle.dumps(X_scaled)
 decoded = codec.decode(codec.encode(data_bytes))
+decoded = bytes(decoded)
 X_scaled = pickle.loads(decoded)
 
 # ------------------------------------
