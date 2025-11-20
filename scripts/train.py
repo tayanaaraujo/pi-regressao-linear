@@ -5,7 +5,7 @@ import pickle
 import json
 
 print("🔄 Carregando dados...")
-df = pd.read_csv("data/treino.csv")
+df = pd.read_csv("data/PI_train.csv")
 
 # Separando entradas e rótulo
 X = df.drop("time", axis=1)
