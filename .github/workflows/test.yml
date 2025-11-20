@@ -2,10 +2,6 @@ name: Test Model
 
 on:
   workflow_dispatch:
-    inputs:
-      test_file:
-        description: "Caminho do CSV de teste"
-        required: true
 
 jobs:
   test:
@@ -23,16 +19,14 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Run test
-        run: python scripts/test.py ${{ github.event.inputs.test_file }}
-
-      - name: Zip results
-        run: |
-          cd results
-          zip -r ../results.zip .
-
-      - name: Upload predictions
-        uses: actions/upload-artifact@v4
+      - name: Download trained model
+        uses: actions/download-artifact@v4
         with:
-          name: results
-          path: results.zip
+          name: trained_model
+          path: .
+
+      - name: Unzip model files
+        run: unzip trained_model.zip -d .
+
+      - name: Run Test
+        run: python scripts/test.py data/PI_train.csv
