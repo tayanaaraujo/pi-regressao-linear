@@ -1,33 +1,68 @@
-import pandas as pd
-from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_squared_error, r2_score
+import os
+import sys
 import pickle
-import json
+import pandas as pd
+import numpy as np
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import TimeSeriesSplit, cross_val_score
+from dahuffman import HuffmanCodec
+from collections import Counter
 
-print("🔄 Carregando dados...")
-df = pd.read_csv("data/PI_train.csv")
+# ------------------------------------
+# 1. LEITURA DO CSV
+# ------------------------------------
+csv_path = sys.argv[1]
+df = pd.read_csv(csv_path)
 
-# Separando entradas e rótulo
-X = df.drop("time", axis=1)
-y = df["time"]
+# O valor alvo é "time"
+y = df["time"].values
+X = df.drop("time", axis=1).values
 
-print("🏋️ Treinando modelo de Regressão Linear...")
+# ------------------------------------
+# 2. NORMALIZAÇÃO MIN-MAX
+# ------------------------------------
+scaler = MinMaxScaler()
+X_scaled = scaler.fit_transform(X)
+
+# ------------------------------------
+# 3. VALIDAÇÃO CRUZADA PARA SÉRIE TEMPORAL
+# ------------------------------------
+tscv = TimeSeriesSplit(n_splits=5)
 model = LinearRegression()
-model.fit(X, y)
 
-pred = model.predict(X)
+scores = cross_val_score(model, X_scaled, y, cv=tscv, scoring="neg_mean_squared_error")
+expected_performance = np.mean(scores)
 
-# Métricas
-mse = mean_squared_error(y, pred)
-r2 = r2_score(y, pred)
+# ------------------------------------
+# 4. TREINO FINAL DO MODELO
+# ------------------------------------
+model.fit(X_scaled, y)
 
-print("📦 Salvando modelo treinado...")
-with open("model.pkl", "wb") as f:
+# ------------------------------------
+# 5. COMPACTAÇÃO HUFFMAN DO ARRAY DE TREINO
+# ------------------------------------
+data_bytes = pickle.dumps(X_scaled)
+freqs = Counter(data_bytes)
+codec = HuffmanCodec.from_frequencies(freqs)
+
+encoded = codec.encode(data_bytes)
+decoded = codec.decode(encoded)
+X_scaled_restored = pickle.loads(decoded)
+
+# ------------------------------------
+# 6. SALVAR MODELO E ARTEFATOS
+# ------------------------------------
+os.makedirs("models", exist_ok=True)
+
+with open("models/model.pkl", "wb") as f:
     pickle.dump(model, f)
 
-print("📝 Salvando desempenho esperado...")
-performance = {"MSE": mse, "R2": r2}
-with open("performance.json", "w") as f:
-    json.dump(performance, f, indent=4)
+with open("models/scaler.pkl", "wb") as f:
+    pickle.dump(scaler, f)
 
-print("✅ Treinamento concluído!")
+with open("models/huffman.codec", "wb") as f:
+    pickle.dump(codec, f)
+
+with open("models/expected_performance.txt", "w") as f:
+    f.write(f"Desempenho esperado (MSE CV): {expected_performance}\n")
