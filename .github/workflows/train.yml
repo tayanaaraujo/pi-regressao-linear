@@ -22,8 +22,8 @@ jobs:
       - name: Train Model
         run: python scripts/train.py data/PI_train.csv
 
-      - name: Zip models
-        run: zip -r trained_model.zip models/
+      - name: Zip contents of models directory
+        run: cd models && zip -r ../trained_model.zip *
 
 
       - name: Upload trained model
