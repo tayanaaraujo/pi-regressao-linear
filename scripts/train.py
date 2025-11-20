@@ -48,6 +48,11 @@ codec = HuffmanCodec.from_frequencies(freqs)
 
 encoded = codec.encode(data_bytes)
 decoded = codec.decode(encoded)
+
+# >>> CORREÇÃO IMPORTANTE <<<
+# Converte lista retornada pelo Huffman em bytes
+decoded = bytes(decoded)
+
 X_scaled_restored = pickle.loads(decoded)
 
 # ------------------------------------
