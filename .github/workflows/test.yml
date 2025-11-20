@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       csv_file:
-        description: "Caminho do CSV de teste dentro da pasta data/"
+        description: "Nome do CSV de teste dentro da pasta data/"
         required: true
 
 jobs:
@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout código
+      - name: Checkout do repositório
         uses: actions/checkout@v4
 
       - name: Configurar Python
@@ -29,12 +29,11 @@ jobs:
           name: modelo_treinado
           path: models/
 
-      - name: Executar script de teste
+      - name: Executar teste
         run: python scripts/test.py data/${{ github.event.inputs.csv_file }}
 
-      - name: Enviar resultado do teste como artefato
+      - name: Enviar resultados
         uses: actions/upload-artifact@v4
         with:
-          name: resultado_teste
+          name: resultados_teste
           path: results/
-
