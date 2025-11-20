@@ -1,14 +1,26 @@
 name: Test Model
 
 on:
-  workflow_dispatch:
+  workflow_run:
+    workflows: ["Train Model"]
+    types:
+      - completed
 
 jobs:
   test:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Download trained model
+        uses: actions/download-artifact@v4
+        with:
+          name: trained_model
+          path: .
+
+      - name: Unzip model
+        run: unzip trained_model.zip
+
+      - name: Checkout repo
         uses: actions/checkout@v3
 
       - name: Setup Python
@@ -19,14 +31,5 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Download trained model
-        uses: actions/download-artifact@v4
-        with:
-          name: trained_model
-          path: .
-
-      - name: Unzip model
-        run: unzip trained_model.zip
-
-      - name: Run Test
+      - name: Run Tests
         run: python scripts/test.py data/PI_train.csv
