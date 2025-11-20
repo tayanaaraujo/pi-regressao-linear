@@ -2,33 +2,33 @@ name: Train Model
 
 on:
   workflow_dispatch:
-    inputs:
-      csv_file:
-        description: "Nome do CSV de treino dentro da pasta data/"
-        default: "PI_train.csv"
-        required: true
 
 jobs:
   train:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout do repositório
-        uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v3
 
-      - name: Configurar Python
-        uses: actions/setup-python@v5
+      - name: Setup Python
+        uses: actions/setup-python@v4
         with:
           python-version: "3.10"
 
-      - name: Instalar dependências
+      - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Executar treino
-        run: python scripts/train.py data/${{ github.event.inputs.csv_file }}
+      - name: Train Model
+        run: python scripts/train.py data/PI_train.csv
 
-      - name: Enviar artefatos (modelo)
-        uses: actions/upload-artifact@v4
+      - name: Zip models
+        run: |
+          cd models
+          zip -r ../trained_model.zip .
+
+      - name: Upload trained model
+        uses: actions/upload-artifact@v3
         with:
-          name: modelo_treinado
-          path: models/
+          name: trained_model
+          path: trained_model.zip
