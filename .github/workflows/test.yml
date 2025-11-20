@@ -3,8 +3,8 @@ name: Test Model
 on:
   workflow_dispatch:
     inputs:
-      csv_file:
-        description: "Nome do CSV de teste dentro da pasta data/"
+      test_file:
+        description: "Caminho do CSV de teste"
         required: true
 
 jobs:
@@ -12,28 +12,27 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout do repositório
-        uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v3
 
-      - name: Configurar Python
-        uses: actions/setup-python@v5
+      - name: Setup Python
+        uses: actions/setup-python@v4
         with:
           python-version: "3.10"
 
-      - name: Instalar dependências
+      - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Baixar modelo treinado
-        uses: actions/download-artifact@v4
-        with:
-          name: modelo_treinado
-          path: models/
+      - name: Run test
+        run: python scripts/test.py ${{ github.event.inputs.test_file }}
 
-      - name: Executar teste
-        run: python scripts/test.py data/${{ github.event.inputs.csv_file }}
+      - name: Zip results
+        run: |
+          cd results
+          zip -r ../results.zip .
 
-      - name: Enviar resultados
-        uses: actions/upload-artifact@v4
+      - name: Upload predictions
+        uses: actions/upload-artifact@v3
         with:
-          name: resultados_teste
-          path: results/
+          name: results
+          path: results.zip
